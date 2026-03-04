@@ -1,5 +1,15 @@
 from __future__ import annotations
 
+LIMITS = {
+    "main":      {"min": 15, "max": 20},
+    "secondary": {"min": 0,  "max": 7},
+    "adult":     {"min": 0,  "max": 10},
+}
+MAX_ADULTS = 4
+SCENE_COUNT_MIN = 40
+SCENE_COUNT_MAX = 45
+MAX_DIFF_BETWEEN_MAIN = 3
+
 def validate_structure(scenes: list, characters: list) -> list:
     """
     Проверяет лимиты участия персонажей в сценах, общего количества сцен и взрослых.
@@ -9,28 +19,28 @@ def validate_structure(scenes: list, characters: list) -> list:
     
     total_scenes = len(scenes)
     # Проверка общего количества сцен (от 40 до 45)
-    if total_scenes < 40 or total_scenes > 45:
+    if total_scenes < SCENE_COUNT_MIN or total_scenes > SCENE_COUNT_MAX:
         errors.append({
             "type": "wrong_scene_count",
             "character": None,
             "current": total_scenes,
-            "limit_min": 40,
-            "limit_max": 45,
+            "limit_min": SCENE_COUNT_MIN,
+            "limit_max": SCENE_COUNT_MAX,
             "scene_numbers": [],
-            "message": f"Общее количество сцен: {total_scenes}, требуется 40-45."
+            "message": f"Общее количество сцен: {total_scenes}, требуется {SCENE_COUNT_MIN}-{SCENE_COUNT_MAX}."
         })
         
     # Проверка на общее количество взрослых персонажей
     adult_count = sum(1 for c in characters if c.get("role_type") == "adult")
-    if adult_count > 4:
+    if adult_count > MAX_ADULTS:
         errors.append({
             "type": "too_many_adults",
             "character": None,
             "current": adult_count,
             "limit_min": 0,
-            "limit_max": 4,
+            "limit_max": MAX_ADULTS,
             "scene_numbers": [],
-            "message": f"Взрослых персонажей: {adult_count}, максимум 4."
+            "message": f"Взрослых персонажей: {adult_count}, максимум {MAX_ADULTS}."
         })
         
     # Подготавливаем учет сцен по персонажам
@@ -47,6 +57,8 @@ def validate_structure(scenes: list, characters: list) -> list:
             if p in char_scenes:
                 char_scenes[p].append(scene_idx)
                 
+    main_counts = {}
+
     # Проверяем лимиты по каждому персонажу
     for char_info in characters:
         name = char_info.get("name", "").upper()
@@ -59,15 +71,18 @@ def validate_structure(scenes: list, characters: list) -> list:
         limit_max = 9999
         
         if role == "main":
-            limit_min = 19
-            limit_max = 21
+            limit_min = LIMITS["main"]["min"]
+            limit_max = LIMITS["main"]["max"]
+            main_counts[name] = count
         elif role == "secondary":
-            limit_max = 10
+            limit_min = LIMITS["secondary"]["min"]
+            limit_max = LIMITS["secondary"]["max"]
         elif role == "adult":
-            limit_max = 15
+            limit_min = LIMITS["adult"]["min"]
+            limit_max = LIMITS["adult"]["max"]
             
         # Проверка "ни в одной сцене"
-        if count == 0:
+        if count == 0 and limit_min > 0:
             errors.append({
                 "type": "missing_character",
                 "character": name,
@@ -75,7 +90,7 @@ def validate_structure(scenes: list, characters: list) -> list:
                 "limit_min": limit_min,
                 "limit_max": limit_max,
                 "scene_numbers": [],
-                "message": f"{name} не участвует ни в одной сцене."
+                "message": f"{name} не участвует ни в одной сцене, а требуется минимум {limit_min}."
             })
             continue
             
@@ -101,6 +116,24 @@ def validate_structure(scenes: list, characters: list) -> list:
                 "limit_max": limit_max,
                 "scene_numbers": participated_scenes,
                 "message": f"{name}: {count} сцен, лимит {limit_min}-{limit_max}. Не хватает минимум {limit_min - count} сцен."
+            })
+
+    # Проверка разницы между главными персонажами
+    if main_counts:
+        max_name = max(main_counts, key=main_counts.get)
+        min_name = min(main_counts, key=main_counts.get)
+        max_count = main_counts[max_name]
+        min_count = main_counts[min_name]
+        
+        if max_count - min_count > MAX_DIFF_BETWEEN_MAIN:
+            errors.append({
+                "type": "uneven_distribution",
+                "character": None,
+                "current": max_count - min_count,
+                "limit_min": 0,
+                "limit_max": MAX_DIFF_BETWEEN_MAIN,
+                "scene_numbers": [],
+                "message": f"Негізгі кейіпкерлер арасындағы айырмашылық тым үлкен: \n{max_name}: {max_count} сцен, {min_name}: {min_count} сцен (айырмашылық: {max_count - min_count}, максимум: {MAX_DIFF_BETWEEN_MAIN})"
             })
 
     return errors

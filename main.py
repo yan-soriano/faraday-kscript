@@ -11,7 +11,7 @@ os.makedirs("frontend", exist_ok=True)
 from state import app_state
 
 # Импортируем роутеры после определения app_state, так как они ссылаются на него
-from routers import outline, dialogue, improve, chat
+from routers import outline, dialogue, improve, chat, memory_router
 from services.kit_reader import load_project
 from services.kit_writer import KitWriter
 from services.memory import load_memory, save_memory
@@ -24,22 +24,23 @@ app.include_router(outline.router)
 app.include_router(dialogue.router)
 app.include_router(improve.router)
 app.include_router(chat.router)
+app.include_router(memory_router.router)
 
 CONFIG_PATH = "config.json"
+
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 @app.on_event("startup")
 def startup_event():
     # Загружаем настройки и инициализируем Gemini при старте
-    if os.path.exists(CONFIG_PATH):
-        try:
-            with open(CONFIG_PATH, "r", encoding="utf-8") as f:
-                config = json.load(f)
-                api_key = config.get("api_key")
-                model = config.get("model", "gemini-2.5-pro")
-                if api_key:
-                    app_state["gemini"] = GeminiClient(api_key=api_key, model=model)
-        except Exception as e:
-            print(f"Ошибка загрузки конфигурации: {e}")
+    api_key = os.environ.get("GEMINI_API_KEY")
+    if api_key:
+        app_state["gemini"] = GeminiClient(api_key=api_key, model="gemini-2.5-pro")
+    else:
+        print("ВНИМАНИЕ: Переменная среды GEMINI_API_KEY не найдена.")
 
 class ProjectLoadRequest(BaseModel):
     path: str
@@ -114,43 +115,9 @@ def undo_api():
 
 @app.get("/api/config")
 def get_config():
-    if os.path.exists(CONFIG_PATH):
-        try:
-            with open(CONFIG_PATH, "r", encoding="utf-8") as f:
-                config = json.load(f)
-                return {"has_api_key": bool(config.get("api_key"))}
-        except Exception:
-            pass
-    return {"has_api_key": False}
-
-class ConfigRequest(BaseModel):
-    api_key: str
-
-@app.post("/api/config")
-def set_config(req: ConfigRequest):
-    config = {
-        "api_key": req.api_key,
-        "model": "gemini-2.5-pro"
-    }
-    
-    # Сохраняем установленную ранее модель, если она была
-    if os.path.exists(CONFIG_PATH):
-        try:
-            with open(CONFIG_PATH, "r", encoding="utf-8") as f:
-                old_config = json.load(f)
-                if "model" in old_config:
-                    config["model"] = old_config["model"]
-        except Exception:
-            pass
-            
-    try:
-        with open(CONFIG_PATH, "w", encoding="utf-8") as f:
-            json.dump(config, f, indent=2)
-            
-        app_state["gemini"] = GeminiClient(api_key=req.api_key, model=config["model"])
-        return {"success": True}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    # Возвращаем true, если API ключ загружен в app_state
+    has_key = app_state.get("gemini") is not None
+    return {"has_api_key": has_key}
 
 # Отдаем фронтенд (последним, чтобы не перебивало API роуты)
 app.mount("/", StaticFiles(directory="frontend", html=True), name="frontend")

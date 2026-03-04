@@ -1,20 +1,14 @@
 <!DOCTYPE html>
 <html lang="kk">
+
 <head>
     <meta charset="UTF-8">
     <title>ИИ-ассистент сценариста</title>
     <link rel="stylesheet" href="style.css">
 </head>
-<body>
-    <div id="api-key-screen" class="screen">
-        <div class="modal">
-            <h2>Gemini API кілтін енгізіңіз</h2>
-            <input type="text" id="api-key-input" placeholder="AIзаSy..." />
-            <button id="save-api-key-btn">Сақтау</button>
-        </div>
-    </div>
 
-    <div id="main-screen" class="screen hidden layout">
+<body>
+    <div id="main-screen" class="screen layout">
         <aside class="left-panel">
             <div class="section">
                 <h3>Жоба</h3>
@@ -22,9 +16,10 @@
                 <input type="file" id="file-input" accept=".kitsp" class="hidden" />
                 <button id="open-project-btn">Жобаны ашу</button>
             </div>
-            
+
             <div class="section tools-section">
                 <h3>Құралдар</h3>
+                <button class="tool-btn" data-tool="project">Жоба мәліметтері</button>
                 <button class="tool-btn" data-tool="outline">Поэпизодник жасау</button>
                 <button class="tool-btn" data-tool="dialogue">Диалог жазу</button>
                 <button class="tool-btn" data-tool="improve">Сценаны жақсарту</button>
@@ -42,9 +37,35 @@
                 <h2>Бос чат</h2>
                 <div id="chat-history" class="history-container"></div>
                 <div class="chat-input-area">
-                    <textarea id="chat-input" placeholder="Сұрағыңызды жазыңыз... (Жіберу үшін Enter, жаңа жол үшін Shift+Enter)"></textarea>
+                    <textarea id="chat-input"
+                        placeholder="Сұрағыңызды жазыңыз... (Жіберу үшін Enter, жаңа жол үшін Shift+Enter)"></textarea>
                     <button id="chat-send-btn">Жіберу</button>
                 </div>
+            </div>
+
+            <!-- Жоба мәліметтері -->
+            <div id="tool-project" class="tool-view hidden">
+                <h2>Жоба мәліметтері</h2>
+                <div class="input-group">
+                    <label>Синопсис</label>
+                    <textarea id="project-synopsis" placeholder="Синопсис мәтіні..."></textarea>
+                </div>
+
+                <div class="characters-section">
+                    <h3>Персонаждар</h3>
+                    <label
+                        style="display:block; margin-bottom: 8px; color: var(--text-muted); font-size: 0.9em;">Кейіпкерлерді
+                        еркін түрде сипаттаңыз. Мысалы:<br>
+                        Арман, 12 жас, басты кейіпкер. Өте белсенді, спортты жақсы көреді.<br>
+                        Айлин, 11 жас, басты кейіпкер. Ақылды, кітап оқуды ұнатады.<br>
+                        Мұғалім Сәкен, 35 жас, ересек. Қатал бірақ әділ.</label>
+                    <textarea id="project-characters-raw" placeholder="Кейіпкерлерді осында жазыңыз..."></textarea>
+                    <div id="parsed-characters-result"
+                        style="margin-top:15px; font-size: 0.9em; white-space: pre-line; color: var(--text-muted);">
+                    </div>
+                </div>
+
+                <button id="save-project-data-btn" style="margin-top: 20px;">Сақтау</button>
             </div>
 
             <!-- Поэпизодник жасау -->
@@ -52,7 +73,8 @@
                 <h2>Поэпизодник жасау</h2>
                 <div class="input-group">
                     <label>Тілектеріңіз</label>
-                    <textarea id="outline-wants" placeholder="Мысалы: Басты кейіпкер көбірек әрекет етсін..."></textarea>
+                    <textarea id="outline-wants"
+                        placeholder="Мысалы: Басты кейіпкер көбірек әрекет етсін..."></textarea>
                 </div>
                 <button id="outline-start-btn">Бастау</button>
                 <div id="outline-progress" class="progress-box hidden">
@@ -103,4 +125,5 @@
 
     <script src="app.js"></script>
 </body>
+
 </html>
