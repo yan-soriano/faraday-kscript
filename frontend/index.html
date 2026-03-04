@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+    <meta charset="UTF-8">
+    <title>ИИ-ассистент сценариста</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="api-key-screen" class="screen">
+        <div class="modal">
+            <h2>Gemini API кілтін енгізіңіз</h2>
+            <input type="text" id="api-key-input" placeholder="AIзаSy..." />
+            <button id="save-api-key-btn">Сақтау</button>
+        </div>
+    </div>
+
+    <div id="main-screen" class="screen hidden layout">
+        <aside class="left-panel">
+            <div class="section">
+                <h3>Жоба</h3>
+                <p id="project-name-display">Жоба таңдалмаған</p>
+                <input type="file" id="file-input" accept=".kitsp" class="hidden" />
+                <button id="open-project-btn">Жобаны ашу</button>
+            </div>
+            
+            <div class="section tools-section">
+                <h3>Құралдар</h3>
+                <button class="tool-btn" data-tool="outline">Поэпизодник жасау</button>
+                <button class="tool-btn" data-tool="dialogue">Диалог жазу</button>
+                <button class="tool-btn" data-tool="improve">Сценаны жақсарту</button>
+                <button class="tool-btn active" data-tool="chat">Бос чат</button>
+            </div>
+
+            <div class="bottom-section">
+                <button id="undo-btn" class="secondary-btn" disabled>Соңғы өзгерісті болдырмау</button>
+            </div>
+        </aside>
+
+        <main class="center-panel">
+            <!-- Бос чат (По умолчанию) -->
+            <div id="tool-chat" class="tool-view active">
+                <h2>Бос чат</h2>
+                <div id="chat-history" class="history-container"></div>
+                <div class="chat-input-area">
+                    <textarea id="chat-input" placeholder="Сұрағыңызды жазыңыз... (Жіберу үшін Enter, жаңа жол үшін Shift+Enter)"></textarea>
+                    <button id="chat-send-btn">Жіберу</button>
+                </div>
+            </div>
+
+            <!-- Поэпизодник жасау -->
+            <div id="tool-outline" class="tool-view hidden">
+                <h2>Поэпизодник жасау</h2>
+                <div class="input-group">
+                    <label>Тілектеріңіз</label>
+                    <textarea id="outline-wants" placeholder="Мысалы: Басты кейіпкер көбірек әрекет етсін..."></textarea>
+                </div>
+                <button id="outline-start-btn">Бастау</button>
+                <div id="outline-progress" class="progress-box hidden">
+                    <p id="outline-status">Күтуде...</p>
+                </div>
+            </div>
+
+            <!-- Диалог жазу -->
+            <div id="tool-dialogue" class="tool-view hidden">
+                <h2>Диалог жазу</h2>
+                <div class="selected-scene-info">
+                    <strong>Таңдалған көрініс:</strong> <span id="dialogue-selected-scene">Таңдалмаған</span>
+                </div>
+                <div class="input-group">
+                    <label>Тілектеріңіз</label>
+                    <textarea id="dialogue-wants" placeholder="Мысалы: Ашулы тонмен сөйлессін..."></textarea>
+                </div>
+                <button id="dialogue-generate-btn" disabled>Диалог жазу</button>
+                <div id="dialogue-progress" class="progress-box hidden">
+                    <p id="dialogue-status">Күтуде...</p>
+                </div>
+            </div>
+
+            <!-- Сценаны жақсарту -->
+            <div id="tool-improve" class="tool-view hidden">
+                <h2>Сценаны жақсарту</h2>
+                <div class="selected-scene-info">
+                    <strong>Таңдалған көрініс:</strong> <span id="improve-selected-scene">Таңдалмаған</span>
+                </div>
+                <div class="input-group">
+                    <label>Нені жақсарту керек?</label>
+                    <textarea id="improve-wants" placeholder="Мысалы: Динамиканы қосу керек..."></textarea>
+                </div>
+                <button id="improve-generate-btn" disabled>Сценаны жақсарту</button>
+                <div id="improve-progress" class="progress-box hidden">
+                    <p id="improve-status">Күтуде...</p>
+                </div>
+            </div>
+        </main>
+
+        <aside class="right-panel">
+            <h3>Көріністер</h3>
+            <div id="scenes-list" class="scenes-container">
+                <!-- Сцены добавляются сюда -->
+            </div>
+        </aside>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
